@@ -1,0 +1,407 @@
+---
+title: "Flagging Freshwater Data"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+date: "2024-09-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(data.table)
+library(qaqcmar)
+library(here)
+library(ggplot2)
+library(sensorstrings)
+```
+
+# Summary
+
+CMAR has collected data on several bodies of freshwater in Nova Scotia through the wild Atlantic salmon project. In addition, CMAR has data collected on several freshwater lakes (e.g. Piper Lake), which is currently published through the Water Quality branch of the Coastal Monitoring Program. 
+
+CMAR intends to publish this freshwater data under a new "Inland" branch of the program. Data will be processed in a similar manner to the water quality data, and data flags will be applied using the qaqcmar package. 
+
+It is suspected that sensors on the following rivers were out of the water for some period of time during the deployment: (Liscomb River (1, 2), xxxx,xxx update). Data flagging efforts will flag data for periods of time sensors were suspected to be exposed. 
+
+The purpose of this document is to help CMAR determine appropriate data flagging tests and thresholds for freshwater data. We do not currently have enough freshwater data to conduct as thorough an analysis as was done on the saltwater water quality data to develop tests and thresholds, so thresholds may be picked in more subjective ways.
+
+Stations which may have experienced air exposure:
+Liscomb 1, Liscomb 2, LaHave 2
+Mersey 2,
+Tusket 3,
+Possibly Musquodoboit 1 and 2
+
+```{r, echo = FALSE, include = FALSE}
+#Load CMAR river data
+dat_all <- readRDS(here("data/2024-09-05_inland_data_prelim_qc.rds"))
+
+dat_clean <- readRDS(here("data/2024-09-05_inland_data_prelim_qc_clean.rds"))
+```
+
+View waterbodies in dataset
+```{r, echo = FALSE}
+unique(dat_all$waterbody)
+```
+
+View stations in dataset
+```{r, echo = FALSE}
+unique(dat_all$station)
+```
+
+
+Plot all station data
+
+```{r, echo = FALSE}
+list <- unique(dat_all$station)
+
+for (i in list) {
+  dat_i <- dat_all %>%
+    filter(station == i)
+  
+  print(ggplot(dat_i, aes(x = timestamp_utc, y = temperature_degree_c, col = station))+
+    geom_line(color = "black", linewidth = 0.75) +
+    facet_grid(vars(station)) +
+    ggtitle(i))
+}
+```
+Plot cleaned station data
+
+```{r, echo = FALSE}
+list <- unique(dat_clean$station)
+
+for (i in list) {
+  dat_i <- dat_clean %>%
+    filter(station == i)
+  
+  print(ggplot(dat_i, aes(x = timestamp_utc, y = temperature_degree_c, col = station))+
+    #geom_line(color = "black", linewidth = 0.75) +
+    geom_point(color = "black") +
+    facet_grid(vars(station)) +
+    ggtitle(i))
+}
+```
+
+# Distribution of observations
+
+::: panel-tabset
+```{r}
+hist(dat_clean$temperature_degree_c)
+```
+:::
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Liscomb River
+
+## Liscomb River Data Plots
+
+```{r, echo = FALSE}
+#Read in Liscomb River .rds data
+liscomb_all <- dat_all %>% 
+  filter(waterbody == "Liscomb River") 
+
+ggplot(liscomb_all, aes(x = timestamp_utc, y = temperature_degree_c, col = station))+
+  geom_line(color = "black", linewidth = 0.75) +
+  facet_grid(vars(station)) +
+  ggtitle("Liscomb River")
+
+ggplot(liscomb_all, aes(x = timestamp_utc, y = temperature_degree_c, col = station)) +
+  #geom_line(size = 0.75) +
+  geom_hline(yintercept = 22, linewidth = 0.25, color = "darkgray") +
+  geom_hline(yintercept = 28, linewidth = 0.25, color = "darkgray") +
+  geom_point(size = 0.25) +
+  xlab("Timestamp (UTC)") +
+  ylab("Temperature (\u00B0C)") +
+  ggtitle("Liscomb River") +
+  theme(legend.title = element_blank(), legend.position = "bottom") +
+  guides(colour = guide_legend(override.aes = list(size = 2))) +
+  scale_color_manual(values = c("Liscomb 1" = "black",
+                                "Liscomb 2" = "steelblue"))
+                                #"Round Hill 3" = "darkgoldenrod"))
+  
+  
+```
+
+## Liscomb River 1 Data Flagging
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+liscomb_1 <- liscomb_all %>%
+  filter(station == "Liscomb 1")
+
+```
+
+### Rolling SD test
+
+```{r, echo = FALSE}
+#add a row to the thresholds table
+newrow_sd <- list(qc_test = "rolling_sd",
+                  variable = "temperature_degree_c",
+                  county = "river_data",
+                  month = "NA",
+                  sensor_type = "NA",
+                  threshold = "rolling_sd_max",
+                  threshold_value = "2")
+
+thresholds <- thresholds %>% 
+  filter(qc_test == c("rolling_sd"), variable == "temperature_degree_c") %>%
+  rbind(newrow_sd)
+
+```
+
+#### SD threshold value 2.0
+
+```{r, echo = FALSE, fig.dim = c(10,5), warning=FALSE, message=FALSE}
+#adjust SD test threshold value
+thresholds[16,7] = "2.0"
+
+#apply test
+qc <- qc_test_rolling_sd(liscomb_1, county = "river_data")
+
+
+qc2 <- qc_pivot_longer(qc, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc2, qc_tests = "rolling_sd", var = "temperature_degree_c") 
+p
+
+#percent flagged
+flagged <- sum(qc2$rolling_sd_flag_value > 2)/count(qc2)
+percent_flagged <- flagged*100
+percent_flagged 
+
+```
+
+#### SD threshold value 1.9
+
+```{r, echo = FALSE, fig.dim = c(10,5), warning=FALSE, message=FALSE}
+#adjust SD test threshold value
+thresholds[16,7] = "1.9"
+
+#apply test
+qc <- qc_test_rolling_sd(liscomb_1, county = "river_data")
+
+
+qc2 <- qc_pivot_longer(qc, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc2, qc_tests = "rolling_sd", var = "temperature_degree_c") 
+p
+
+#percent flagged
+flagged <- sum(qc2$rolling_sd_flag_value > 2)/count(qc2)
+percent_flagged <- flagged*100
+percent_flagged
+
+```
+
+#### SD threshold value 1.5
+
+```{r, echo = FALSE, fig.dim = c(10,5), warning=FALSE, message=FALSE}
+#adjust SD test threshold value
+thresholds[16,7] = "1.5"
+
+#apply test
+qc <- qc_test_rolling_sd(liscomb_1, county = "river_data")
+
+
+qc2 <- qc_pivot_longer(qc, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc2, qc_tests = "rolling_sd", var = "temperature_degree_c") 
+p
+
+
+#percent flagged
+flagged <- sum(qc2$rolling_sd_flag_value > 2)/count(qc2)
+percent_flagged <- flagged*100
+percent_flagged
+
+```
+
+
+#### SD threshold value 1.0
+
+```{r, echo = FALSE, fig.dim = c(10,5), warning=FALSE, message=FALSE}
+#adjust SD test threshold value
+thresholds[16,7] = "1.0"
+
+#apply test
+qc <- qc_test_rolling_sd(liscomb_1, county = "river_data")
+
+
+qc2 <- qc_pivot_longer(qc, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc2, qc_tests = "rolling_sd", var = "temperature_degree_c") 
+p
+
+
+#percent flagged
+flagged <- sum(qc2$rolling_sd_flag_value > 2)/count(qc2)
+percent_flagged <- flagged*100
+percent_flagged
+
+```
+
+
+#### SD threshold value statistics
+
+awaiting tips from danielle
+```{r, echo = FALSE, fig.dim = c(10,5), warning=FALSE, message=FALSE}
+#calculate rolling standard deviation column
+liscomb_1stat <- liscomb_1 %>%
+  mutate(sd_roll = "")
+
+dat_temp <- liscomb_1stat %>% 
+  select(timestamp_utc, county, waterbody, station, lease, latitude, longitude, deployment_range, string_configuration, sensor_type, sensor_serial_number, temperature_degree_c, sensor_depth_at_low_tide_m, sd_roll) %>%
+  qc_test_rolling_sd(keep_sd_cols = TRUE)
+
+#convert rolling_sd_flag_temperature_degree_c column to numeric
+dat_temp$rolling_sd_flag_temperature_degree_c <- as.numeric(as.character(dat_temp$rolling_sd_flag_temperature_degree_c))
+
+#calculate rolling standard deviation threshold
+sd_thresholds <- qc_calculate_rolling_sd_thresholds(
+  dat = dat_temp,
+  var = "temperature_degree_c",
+  stat = "mean_sd",
+  #prob = 0.95
+  n_sd = 3
+)
+
+#make rolling sd table
+variable <- "temperature_degree_c"
+rolling_sd_max <- as.numeric(sd_thresholds[1,4])
+sensor_type <- "hobo"
+sd_table <- data.frame(variable, rolling_sd_max, sensor_type)
+
+
+#plot
+qc2 <- qc_pivot_longer(dat_temp, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc2, qc_tests = "rolling_sd", var = "temperature_degree_c")
+p
+
+
+#percent flagged
+flagged <- sum(qc2$rolling_sd_flag_value > 2)/count(qc2)
+percent_flagged <- flagged*100
+percent_flagged
+
+```
+
+
+
+### Spike test
+
+#### Spike Quartile method
+
+```{r, echo = FALSE, fig.dim = c(10,5), warning=FALSE, message=FALSE}
+
+spike_calculations <- qc_calculate_spike_thresholds(liscomb_1,
+                              var = temperature_degree_c,
+                              stat = "quartile")
+
+#adjust spike test threshold value
+variable <- "temperature_degree_c"
+spike_low <- as.numeric(spike_calculations[1,4])
+spike_high <- as.numeric(spike_calculations[2,4])
+sensor_type <- "hobo"
+spike_table <- data.frame(variable, spike_low, spike_high, sensor_type)
+```
+
+Spike low: `r spike_low`
+
+Spike high: `r spike_high`
+
+```{r, echo=FALSE, fig.dim=c(10,5), warning=FALSE, message=FALSE}
+#apply test
+qc <- qc_test_spike(liscomb_1, 
+                    county = "river_data",
+                    spike_table = spike_table)
+
+qc2 <- qc_pivot_longer(qc, qc_tests = "spike")
+p <- qc_plot_flags(qc2, qc_tests = "spike", var = "temperature_degree_c") 
+p
+```
+
+#### Spike SD method
+
+```{r, echo = FALSE, fig.dim = c(10,5), warning=FALSE, message=FALSE}
+
+spike_calculations <- qc_calculate_spike_thresholds(liscomb_1,
+                              var = temperature_degree_c,
+                              stat = "mean_sd",
+                              n_sd = 3)
+
+#adjust spike test threshold value
+variable <- "temperature_degree_c"
+spike_low <- as.numeric(spike_calculations[1,4])
+spike_high <- as.numeric(spike_calculations[2,4])
+sensor_type <- "hobo"
+spike_table <- data.frame(variable, spike_low, spike_high, sensor_type)
+```
+
+Spike low: `r spike_low`
+
+Spike high: `r spike_high`
+
+```{r, echo=FALSE, fig.dim=c(10,5), warning=FALSE, message=FALSE}
+#apply test
+qc <- qc_test_spike(liscomb_1, 
+                    county = "river_data",
+                    spike_table = spike_table)
+
+qc2 <- qc_pivot_longer(qc, qc_tests = "spike")
+p <- qc_plot_flags(qc2, qc_tests = "spike", var = "temperature_degree_c") 
+p
+```
+
+### Grossrange test
+
+```{r, echo=FALSE, fig.dim=c(10,5), warning=FALSE, message=FALSE}
+grossrange_table <- data.frame(variable = "temperature_degree_c", 
+                               sensor_type = "hobo",
+                               sensor_min = -40,
+                               sensor_max = 70,
+                               user_min = -40,
+                               user_max = 24)
+
+
+qc_gr <- qc_test_grossrange(liscomb_1,
+                   grossrange_table = grossrange_table,
+                   county = "river_data")
+
+qc2 <- qc_pivot_longer(qc_gr, qc_tests = "grossrange")
+p <- qc_plot_flags(qc2, qc_tests = "grossrange", var = "temperature_degree_c") 
+p
+```
+
+
+
+### Climatology test
+
+Not enough data to set climatological thresholds 
+
+
+
+## Next steps
+
+Test applying thresholds to other datasets
+Calculate test statistics (what % of data is flagged under different thresholds, at what thresholds does it accurately flag everything it should have)
+
+
+
+
+
+
