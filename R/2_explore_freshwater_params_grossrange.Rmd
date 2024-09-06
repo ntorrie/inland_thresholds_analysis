@@ -19,6 +19,8 @@ library(qaqcmar)
 library(here)
 library(ggplot2)
 library(sensorstrings)
+library(summaryplots)
+library(plotly)
 ```
 
 # Summary
@@ -56,7 +58,7 @@ unique(dat_all$station)
 
 
 Plot all station data
-
+::: panel-tabset
 ```{r, echo = FALSE}
 list <- unique(dat_all$station)
 
@@ -70,9 +72,14 @@ for (i in list) {
     ggtitle(i))
 }
 ```
+::: 
+
+
 Plot cleaned station data
 
-```{r, echo = FALSE}
+#tabset
+```{r, figures-side,echo = FALSE}
+
 list <- unique(dat_clean$station)
 
 for (i in list) {
@@ -82,22 +89,87 @@ for (i in list) {
   print(ggplot(dat_i, aes(x = timestamp_utc, y = temperature_degree_c, col = station))+
     #geom_line(color = "black", linewidth = 0.75) +
     geom_point(color = "black") +
-    facet_grid(vars(station)) +
+    #facet_grid(vars(station)) +
+    facet_wrap(vars(station), ncol = 4) +
     ggtitle(i))
 }
 ```
+:::
 
 # Distribution of observations
 
-::: panel-tabset
-```{r}
-hist(dat_clean$temperature_degree_c)
+
+```{r, echo = FALSE, fig.height = 15}
+#hist(dat_clean$temperature_degree_c)
+
+dat_long <- ss_pivot_longer(dat_clean)
+
+
+# for (i in list) {
+  # dat_i <- dat_clean %>%
+  #   filter(station == i)
+  # 
+  # station_i = paste(i)
+  
+  p_i <- dat_clean %>%
+    plot_histogram(hist_col = "temperature_degree_c", binwidth = 1) +
+    scale_x_continuous("temperature_degree_c") +
+    facet_wrap(~station, ncol = 2)
+  
+  # print(hist(dat_i$temperature_degree_c, main = station_i) +
+  # facet_wrap(~station, ncol = 3))
+# }
+
+p_i
+
+
+# for(i in seq_along(vars)) {
+# 
+#   var_i <- vars[i]
+# 
+#   dat_i <- dat %>%
+#     filter(variable == var_i)
+#   
+#   #bin_width <- get_bin_width(var_i)
+# 
+#   cat(paste("### ", var_i, "\n \n"))
+# 
+#   p_i <- dat_i %>%
+#     plot_histogram(hist_col = "value", binwidth = 5) +
+#     scale_x_continuous(var_i) +
+#     facet_wrap(~county, ncol = 3)
+# 
+#   subchunkify(p_i, fig_height = 8, fig_width = 8.5)
+# 
+#   cat("\n\n")
+# }
+
 ```
-:::
 
 
 
 
+Summary Stats
+
+```{r, echo = FALSE}
+stats <- dat_long %>% 
+  group_by(station, variable) %>% 
+  summarise(
+    n = n(),
+    mean = round(mean(value), digits = 2),
+    min = min(value),
+    max = max(value),
+    stdev = round(sd(value), digits = 2), 
+    q_90 = round(quantile(value, probs = 0.90), digits = 2),
+    q_95 = round(quantile(value, probs = 0.95), digits = 2),
+    q_997 = round(quantile(value, probs = 0.997), digits = 2)
+  ) %>%
+  ungroup() %>% 
+  mutate(n_percent = round(n * 100 / sum(n), digits = 1)) %>% 
+  select(station, variable, n, n_percent, everything())
+
+print(stats)
+```
 
 
 
