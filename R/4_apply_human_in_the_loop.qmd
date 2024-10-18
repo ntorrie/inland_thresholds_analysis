@@ -1,0 +1,48 @@
+---
+title: "Flagging Inland Data - Rolling SD"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(data.table)
+library(qaqcmar)
+library(here)
+library(ggplot2)
+library(sensorstrings)
+library(summaryplots)
+library(plotly)
+library(DT)
+library(leaflet)
+library(zoo)
+
+#Load CMAR river data
+flagged_dat_removed_all <- readRDS(here("data/2024-10-18_inland_data_flagged_all.rds"))
+
+
+flagged_dat_all <- readRDS(here("data/2024-10-18_inland_data_flagged_all.rds"))
+
+
+```
+
+
+```{r}
+station_view <- "Tusket 3"
+
+p <- ggplot(
+  flagged_dat_all %>% filter(station == station_view),
+  aes(x = timestamp_utc, y = temperature_degree_c, col = rolling_sd_flag_temperature_degree_c)
+) +
+  ggtitle(station_view) +
+  geom_point() 
+
+ggplotly(p)
+```
+

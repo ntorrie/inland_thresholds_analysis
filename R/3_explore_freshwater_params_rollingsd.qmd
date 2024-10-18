@@ -277,6 +277,19 @@ thresh_quartile %>%
 
 ```
 
+## Quartile pooled threshold table prob = 0.95
+```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+#look at histograms of SD roll colums
+#calculate thresholds by quantiles if skewed, mean/sd if normally distributed
+thresh_quartile_pooled_95 <- dat_clean_roll %>%
+  dplyr::group_by(county) %>%
+  qc_calculate_rolling_sd_thresholds(temperature_degree_c, stat = "quartile", prob = 0.95)
+
+thresh_quartile_pooled_95 %>%
+  datatable(rownames = FALSE, options = dt_options)
+
+```
+
 ## Quartile pooled threshold table prob = 0.97
 ```{r, echo = FALSE, warning = FALSE, fig.height = 15}
 #look at histograms of SD roll colums
@@ -398,6 +411,41 @@ cat("\n\n")
 :::
 
 
+## Quartile Pooled 0.95
+::: panel-tabset
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| results: asis
+#| fig-height: 5
+
+threshold_value <- thresh_quartile_pooled_95$threshold_value
+
+#update threshold value in thresholds table. Caution - hard coded in. Check this!
+thresholds[16,7] = threshold_value
+
+for (i in list) {
+  dat_i <- dat_all %>%
+    filter(station == i)
+  
+cat(paste("### ", i, "\n \n"))
+  
+#apply test
+qc_i <- qc_test_rolling_sd(dat_i, county = "river_data")
+
+#plot
+qc2_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc2_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+print(p$temperature_degree_c$rolling_sd)
+
+
+cat("\n\n")
+}
+
+```
+:::
+
 ## Quartile Pooled 0.97
 ::: panel-tabset
 ```{r}
@@ -515,7 +563,9 @@ Due to the right-skew of the sd_roll distribution plots, the quantile method was
 #| results: asis
 #| fig-height: 5
 
-threshold_value <- thresh_quartile_pooled_97$threshold_value
+threshold_value <- thresh_quartile_pooled_997$threshold_value
+
+q = "q_997"
 
 thresholds[16,7] = threshold_value
 
@@ -531,6 +581,7 @@ summary_all <- sd_roll_applied_all %>%
   ) %>%
   mutate(percent_suspect = round((100 * n_suspect / n_obs), digits = 3)) %>%
   mutate(threshold = threshold_value) %>%
+  mutate(q = q) %>%
   ungroup()
 
 
@@ -538,9 +589,47 @@ summary_all <- sd_roll_applied_all %>%
 summary_all %>%
   datatable(rownames = FALSE, options = dt_options)
 
+saveRDS(sd_roll_applied_all, here("data/2024-10-18_inland_data_flagged_all.rds"))
+
 ```
 
 
 
+```{r}
+#remove flagged values
+flagged_dat_all <- sd_roll_applied_all %>%
+  filter(rolling_sd_flag_temperature_degree_c <2)
+
+saveRDS(flagged_dat_all, here("data/2024-10-18_inland_data_flagged_rm_all.rds"))
+```
 
 
+## Plot Flagged/Cleaned Station Data
+
+::: panel-tabset
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 5
+
+for (i in list) {
+  dat_i <- flagged_dat_all %>%
+    filter(station == i)
+  
+  cat(paste("### ", i, "\n \n"))
+  
+  print(
+    ggplot(
+      dat_i,
+      aes(x = timestamp_utc, y = temperature_degree_c, col = station)
+    ) +
+      geom_point(color = "black") +
+      facet_grid(vars(station)) +
+      ggtitle(i)
+  )
+  
+  cat("\n\n")
+}
+```
+:::
