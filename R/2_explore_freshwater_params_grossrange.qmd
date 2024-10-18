@@ -286,81 +286,28 @@ p
 ```
 
 
-# Apply thresholds
+# Calculate user grossrange threshold
 
-Since the datasets are all normally distributed, mean + SD will be used to develop thresholds. Stations have similar mean + SD, so data has been pooled to determine one threshold to be used to flag all inland river datasets.
+Since the datasets are all normally distributed, mean + SD will be used to develop the grossrange thresholds. Stations have similar mean + SD, so data has been pooled to determine one threshold to be used to flag all inland river datasets.
 
-## First Attempt 
+## Mean_sd threshold table
+```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+#look at histograms of SD roll colums
+#calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 
-```{r}
-#| warning: false
-#| message: false
-#| results: asis
-#| fig-height: 8
+#calculate threshold using clean data
+thresh_user <- qc_calculate_user_thresholds(dat_clean, temperature_degree_c, n_sd = 3, keep_stats = FALSE)
 
-# library(zoo)
-# period_hours <- 24
-# max_interval_hours <- 2
-# align_window <- "center"
-# 
-# dat_all_roll <- dat_long %>%
-#   group_by(county,
-#            station,
-#            deployment_range,
-#            sensor_serial_number,
-#            variable) %>%
-#   dplyr::arrange(timestamp_utc, .by_group = TRUE) %>%
-#   mutate(
-#     # sample interval
-#     int_sample = difftime(timestamp_utc, lag(timestamp_utc), units = "mins"),
-#     int_sample = round(as.numeric(int_sample)),
-#     
-#     # number of samples in  period_hours
-#     # 60 mins / hour * 1 sample / int_sample mins * 24 hours / period
-#     n_sample = round((60 / int_sample) * period_hours),
-#     # n_sample = if_else(is.na(n_sample), 1, n_sample), # first obs
-#     n_sample_effective = case_when(
-#       # first observation of each group is NA, which will give error in rollapply
-#       is.na(n_sample) ~ 0,
-#       # if the sample interval is greater than acceptable limit, set n_sample to 0
-#       # so that roll_sd will be NA
-#       int_sample > max_interval_hours * 60 ~ 0,
-#       TRUE ~ n_sample
-#     ),
-#     # rolling sd
-#     sd_roll = rollapply(
-#       value,
-#       width = n_sample_effective,
-#       align = align_window,
-#       FUN = sd,
-#       fill = NA
-#     ),
-#     sd_roll = round(sd_roll, digits = 2)
-#   )
-# 
-# 
-# #look at histograms of SD roll colums
-# 
-# 
-# 
-# thresh <- qc_calculate_rolling_sd_thresholds(dat_all_roll, temperature_degree_c, stat = "mean_sd", n_sd = 3)
+thresh_user %>%
+  datatable(rownames = FALSE, options = dt_options)
 
-threshold_value <- stats_all$stdev
-
-newrow_sd <- list(qc_test = "rolling_sd",
-                  variable = "temperature_degree_c",
-                  county = "river_data",
-                  month = "NA",
-                  sensor_type = "NA",
-                  threshold = "rolling_sd_max",
-                  threshold_value = threshold_value)
-
-thresholds <- thresholds %>% 
-  filter(qc_test == c("rolling_sd"), variable == "temperature_degree_c") %>%
-  rbind(newrow_sd)
 
 ```
 
+
+# Apply user grossrange threshold
+# Visualize flagged data
+## Mean_sd
 ::: panel-tabset
 ```{r}
 #| warning: false
@@ -369,6 +316,29 @@ thresholds <- thresholds %>%
 #| results: asis
 #| fig-height: 5
 
+threshold_value_user_min <- min(thresh_user$threshold_value)
+threshold_value_user_max <- max(thresh_user$threshold_value)
+
+newrow_gr1 <- list(qc_test = "grossrange",
+                  variable = "temperature_degree_c",
+                  county = "river_data",
+                  month = "NA",
+                  sensor_type = "NA",
+                  threshold = "user_min",
+                  threshold_value = threshold_value_user_min)
+
+newrow_gr2 <- list(qc_test = "grossrange",
+                  variable = "temperature_degree_c",
+                  county = "river_data",
+                  month = "NA",
+                  sensor_type = "NA",
+                  threshold = "user_max",
+                  threshold_value = threshold_value_user_max)
+
+thresholds <- thresholds %>% 
+  filter(qc_test == c("grossrange"), variable == "temperature_degree_c") %>%
+  rbind(newrow_gr1) %>%
+  rbind(newrow_gr2)
 
 for (i in list) {
   dat_i <- dat_all %>%
@@ -377,19 +347,16 @@ for (i in list) {
 cat(paste("### ", i, "\n \n"))
   
 #apply test
-qc_i <- qc_test_rolling_sd(dat_i, county = "river_data")
+qc_i <- qc_test_grossrange(dat_i, county = "river_data")
 
 #plot
-qc2_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
-p <- qc_plot_flags(qc2_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
-print(p$temperature_degree_c$rolling_sd)
+qc2_i <- qc_pivot_longer(qc_i, qc_tests = "grossrange")
+p <- qc_plot_flags(qc2_i, qc_tests = "grossrange", var = "temperature_degree_c")
+print(p$temperature_degree_c$grossrange)
 
 
 cat("\n\n")
 }
 
 ```
-
 ::: 
-
-
