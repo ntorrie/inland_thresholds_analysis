@@ -1,5 +1,5 @@
 ---
-title: "Flagging Inland Data"
+title: "Flagging Inland Data - Explore Grossrange"
 format:
   html:
     toc: true
@@ -8,6 +8,8 @@ format:
 editor_options: 
   chunk_output_type: console
 ---
+NOTE: This document was generated with old data, prior to data reprocessing. See 
+2.1_explore_freshwaer_params_grossrange.qmd instead
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -49,8 +51,6 @@ dt_options <- list(
 
 ```
 
-
-# Inland Parameters: Explore Thresholds
 
 ## Summary
 

@@ -1,3 +1,8 @@
+
+# NOTE: THIS IS THE OLD VERSION CREATED PRIOR TO DATA RE-PROCESSING. sEE 1.1_assemble_inland_data_new
+
+
+
 # September 5, 2024
 
 # Assemble inland data
@@ -15,17 +20,18 @@ library(ggplot2)
 
 
 ## read in data ----------------------------------------------------------------
-# path <- "R:/data_branches/water_quality/processed_data/deployment_data/river_data/new/"
+path <- "R:/data_branches/inland_water_quality/processed_data/deployment_data"
+
+rdslist <- list.files(path = path, pattern = ".rds", full.names = TRUE, recursive = TRUE)
+
+dat_raw <- rdslist %>%
+  purrr::map_dfr(readRDS)
+
+# files <- list.files(here("data-raw"), pattern = "rds", full.names = TRUE)
 # 
-# rdslist <- list.files(path = path, pattern = ".rds", full.names = TRUE) 
-# dat_all <- rdslist %>%
-#   purrr::map_dfr(readRDS)
-
-files <- list.files(here("data-raw"), pattern = "rds", full.names = TRUE)
-
-dat_raw <- files %>%
-  purrr::map_dfr(readRDS) %>%
-  subset(select = -c(dissolved_oxygen_uncorrected_mg_per_l))
+# dat_raw <- files %>%
+#   purrr::map_dfr(readRDS) %>%
+#   subset(select = -c(dissolved_oxygen_uncorrected_mg_per_l))
   
 
 # View waterbodies in dataset
@@ -66,7 +72,7 @@ thresholds[16,7] = "1.5"
 # Liscomb 1
 # Liscomb River 1 Data Flagging
 suspect_liscomb1 <- dat_raw %>%
-  filter(station == "Liscomb 1")
+  filter(station == "Liscomb River 1")
 
 #apply test
 qc_liscomb1 <- qc_test_rolling_sd(suspect_liscomb1, county = "river_data")
@@ -189,12 +195,20 @@ dat_clean <- dat_rm %>%
   rbind(clean_tusket3) %>%
   subset(select = -c(rolling_sd_flag_temperature_degree_c))
 
-             
+## read in newer data ----------------------------------------------------------------
+path <- "R:/data_branches/inland_water_quality/processed_data/deployment_data"
+
+rdslist <- list.files(path = path, pattern = ".rds", full.names = TRUE, recursive = TRUE)
+dat_new <- rdslist %>%
+  purrr::map_dfr(readRDS)
+
 
 # export rds -------------------------------------------------------------------
-saveRDS(dat_raw, here("data/2024-09-05_inland_data_prelim_qc.rds"))
- 
+# saveRDS(dat_raw, here("data/2024-09-05_inland_data_prelim_qc.rds"))
+#  
 saveRDS(dat_clean, here("data/2024-09-05_inland_data_prelim_qc_clean.rds"))
+
+saveRDS(dat_new, here("data/2024-12-02_inland_data_raw.rds"))
 
 
 

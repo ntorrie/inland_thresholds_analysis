@@ -31,6 +31,7 @@ dat_clean <- readRDS(here("data/2024-09-05_inland_data_prelim_qc_clean.rds"))
 
 dat_long <- ss_pivot_longer(dat_clean)
 
+
 st_locations <- dat_all %>%
   distinct(latitude, .keep_all = TRUE)
 
@@ -253,7 +254,7 @@ p_j
 ::: panel-tabset
 ## Mean_sd threshold table
 ```{r, echo = FALSE, warning = FALSE, fig.height = 15}
-#look at histograms of SD roll colums
+#look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 
 
@@ -279,7 +280,7 @@ thresh_quartile %>%
 
 ## Quartile pooled threshold table prob = 0.95
 ```{r, echo = FALSE, warning = FALSE, fig.height = 15}
-#look at histograms of SD roll colums
+#look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_95 <- dat_clean_roll %>%
   dplyr::group_by(county) %>%
@@ -292,7 +293,7 @@ thresh_quartile_pooled_95 %>%
 
 ## Quartile pooled threshold table prob = 0.97
 ```{r, echo = FALSE, warning = FALSE, fig.height = 15}
-#look at histograms of SD roll colums
+#look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_97 <- dat_clean_roll %>%
   dplyr::group_by(county) %>%
@@ -305,7 +306,7 @@ thresh_quartile_pooled_97 %>%
 
 ## Quartile pooled threshold table prob = 0.99
 ```{r, echo = FALSE, warning = FALSE, fig.height = 15}
-#look at histograms of SD roll colums
+#look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_99 <- dat_clean_roll %>%
   dplyr::group_by(county) %>%
@@ -318,7 +319,7 @@ thresh_quartile_pooled_99 %>%
 
 ## Quartile pooled threshold table prob = 0.997
 ```{r, echo = FALSE, warning = FALSE, fig.height = 15}
-#look at histograms of SD roll colums
+#look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_997 <- dat_clean_roll %>%
   dplyr::group_by(county) %>%
