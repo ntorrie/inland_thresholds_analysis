@@ -1,0 +1,14 @@
+NOTE: 
+
+2024-12-04
+
+Some of the inland threshold analysis was completed prior to data reprocessing
+for the inland datasets. Thus, several versions of some of the scripts exist.
+
+Final order in which scripts should be run, with the newest datsets, is as follows:
+
+1.1_assemble_inland_data_new.R
+2.1_explore_freshwater_params_grossrange.qmd
+3_explore_freshwater_params_rollingsd.qmd
+4_explore_human_in_the_loop.qmd
+5_apply_all_flags.qmd

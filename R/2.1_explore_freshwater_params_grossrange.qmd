@@ -31,7 +31,7 @@ dat_clean <- readRDS(here("data/2024-12-02_inland_data_prelim_qc_clean.rds"))
 dat_clean_long <- ss_pivot_longer(dat_clean)
 
 #Remove sissiboo river, hourglass lake, and piper lake data for now
-remove_stations <- c("Hourglass Lake", "Sissiboo", "Piper Lake")
+remove_stations <- c("Hourglass Lake", "Sissiboo", "Piper Lake", "Mersey River 3")
 
 dat_all <- dat_all1 %>%
   filter(!(station %in% remove_stations))
@@ -293,7 +293,7 @@ p
 
 # Calculate user grossrange threshold
 
-Since the datasets are all normally distributed, mean + SD will be used to develop the grossrange thresholds. Stations have similar mean + SD, so data has been pooled to determine one threshold to be used to flag all inland river datasets.
+Since the datasets are all normally distributed, mean + 3SD will be used to develop the grossrange thresholds. Stations have similar mean + SD, so data has been pooled to determine one threshold to be used to flag all inland river datasets.
 
 ## Mean_sd threshold table
 ```{r, echo = FALSE, warning = FALSE, fig.height = 15}
@@ -310,11 +310,7 @@ thresh_user %>%
 
 ```
 
-The statistically derived thresholds may be misleading when applied to future dasets, because most of the training datasets do not unclude data from the full year. Thus, for now I recommend CMAR chosen grossrange thresholds until more data is available.
-
-The chosen user minimum threshold is 0 degrees C to identify times during which ice formation may be possible in freshwater inland datasets.
-
-The chosen user maximum threshold is 28 degrees C which is an upper tolerance limit for salmonids (Elliott, 1991; Breau et al., 2011)
+The statistically derived thresholds may be misleading when applied to future datasets, because most of the training datasets do not include data from the full year. Very few of our inland datasets include data from winter months. Thus, for now I recommend CMAR user grossrange thresholds are ONLY applied to data collected between June and October (inclusive).
 
 
 ```{r, echo = FALSE, warning = FALSE}
@@ -363,9 +359,4 @@ cat("\n\n")
 ```
 ::: 
 
-
-# References
-Breau, C. et al. (2011). Behaviour during elevated water temperatures: can physiology explain movement of juvenile Atlantic salmon to cool water? J Anim Ecol, 80(4), 844-853. doi:10.1111/j.1365-2656.2011.01828.x
-
-Elliott, J. M. (1991). Tolerance and resistance to thermal stress in juvenile Atlantic salmon, Salmo salar. Freshwater Biology, 25, 61-70.
 

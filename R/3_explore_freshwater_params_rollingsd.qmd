@@ -12,7 +12,7 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
-library(tidyverse)
+library(tidyverse) #update this
 library(data.table)
 library(qaqcmar)
 library(here)
@@ -23,13 +23,20 @@ library(plotly)
 library(DT)
 library(leaflet)
 library(zoo)
+library(purrr)
 
 #Load CMAR river data
-dat_all <- readRDS(here("data/2024-09-05_inland_data_prelim_qc.rds"))
+dat_all1 <- readRDS(here("data/2024-12-02_inland_data_raw.rds"))
 
-dat_clean <- readRDS(here("data/2024-09-05_inland_data_prelim_qc_clean.rds"))
+dat_clean <- readRDS(here("data/2024-12-02_inland_data_prelim_qc_clean.rds"))
 
-dat_long <- ss_pivot_longer(dat_clean)
+dat_clean_long <- ss_pivot_longer(dat_clean)
+
+#Remove sissiboo river, hourglass lake, and piper lake data for now
+remove_stations <- c("Hourglass Lake", "Sissiboo", "Piper Lake", "Mersey River 3")
+
+dat_all <- dat_all1 %>%
+  filter(!(station %in% remove_stations))
 
 
 st_locations <- dat_all %>%
@@ -54,7 +61,7 @@ period_hours <- 24
 max_interval_hours <- 2
 align_window <- "center"
 
-dat_clean_roll <- dat_long %>%
+dat_clean_roll <- dat_clean_long %>%
   group_by(station,
            deployment_range,
            sensor_serial_number,
@@ -88,7 +95,7 @@ dat_clean_roll <- dat_long %>%
     sd_roll = round(sd_roll, digits = 2)
   )
 
-
+thresholds_all <- thresholds
 
 ```
 
@@ -127,7 +134,7 @@ unique(dat_all$station)
  - Tusket 3
  - Possibly Musquodoboit 1 and 2
 
-# Station Locations
+# Station locations
 
 Approximate location of stations included in analysis.
 
@@ -155,7 +162,7 @@ leaflet(st_locations) %>%
 ```
 
 
-# Plot all Station Data
+# Plot all station data
 
 ::: panel-tabset
 ```{r}
@@ -185,7 +192,7 @@ for (i in list) {
 ```
 :::
 
-# Plot Cleaned Station Data
+# Plot cleaned station data
 
 Suspected outliers have been removed from the following datasets:
 
@@ -249,7 +256,7 @@ p_j
 
 ```
 
-# Apply Thresholds
+# Generate thresholds
 
 ::: panel-tabset
 ## Mean_sd threshold table
@@ -283,7 +290,7 @@ thresh_quartile %>%
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_95 <- dat_clean_roll %>%
-  dplyr::group_by(county) %>%
+  dplyr::group_by(variable) %>%
   qc_calculate_rolling_sd_thresholds(temperature_degree_c, stat = "quartile", prob = 0.95)
 
 thresh_quartile_pooled_95 %>%
@@ -296,7 +303,7 @@ thresh_quartile_pooled_95 %>%
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_97 <- dat_clean_roll %>%
-  dplyr::group_by(county) %>%
+  dplyr::group_by(variable) %>%
   qc_calculate_rolling_sd_thresholds(temperature_degree_c, stat = "quartile", prob = 0.97)
 
 thresh_quartile_pooled_97 %>%
@@ -309,7 +316,7 @@ thresh_quartile_pooled_97 %>%
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_99 <- dat_clean_roll %>%
-  dplyr::group_by(county) %>%
+  dplyr::group_by(variable) %>%
   qc_calculate_rolling_sd_thresholds(temperature_degree_c, stat = "quartile", prob = 0.99)
 
 thresh_quartile_pooled_99 %>%
@@ -322,7 +329,7 @@ thresh_quartile_pooled_99 %>%
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_997 <- dat_clean_roll %>%
-  dplyr::group_by(county) %>%
+  dplyr::group_by(variable) %>%
   qc_calculate_rolling_sd_thresholds(temperature_degree_c, stat = "quartile", prob = 0.997)
 
 thresh_quartile_pooled_997 %>%
@@ -340,32 +347,30 @@ thresh_quartile_pooled_997 %>%
 #| echo: false
 #| results: asis
 #| fig-height: 5
-threshold_value_sd <- mean(thresh_sd$threshold_value)
 
-newrow_sd <- list(qc_test = "rolling_sd",
-                  variable = "temperature_degree_c",
-                  county = "river_data",
-                  month = "NA",
-                  sensor_type = "NA",
-                  threshold = "rolling_sd_max",
-                  threshold_value = threshold_value_sd)
 
-thresholds <- thresholds %>% 
-  filter(qc_test == c("rolling_sd"), variable == "temperature_degree_c") %>%
-  rbind(newrow_sd)
 
 for (i in list) {
   dat_i <- dat_all %>%
     filter(station == i)
   
 cat(paste("### ", i, "\n \n"))
+
+county_i <- dat_i$county[1]
+
+
+thresholds <- thresholds_all %>% 
+  filter(qc_test == c("rolling_sd"), variable == "temperature_degree_c", county == county_i) 
+
+thresholds$threshold_value = mean(thresh_sd$threshold_value)
+
   
 #apply test
-qc_i <- qc_test_rolling_sd(dat_i, county = "river_data")
+qc_i <- qc_test_rolling_sd(dat_i, county = county_i)
 
 #plot
-qc2_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
-p <- qc_plot_flags(qc2_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+qc_long_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc_long_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
 print(p$temperature_degree_c$rolling_sd)
 
 
@@ -385,23 +390,27 @@ cat("\n\n")
 #| results: asis
 #| fig-height: 5
 
-threshold_value <- mean(thresh_quartile$threshold_value)
-
-#update threshold value in thresholds table. Caution - hard coded in. Check this!
-thresholds[16,7] = threshold_value
 
 for (i in list) {
   dat_i <- dat_all %>%
     filter(station == i)
   
 cat(paste("### ", i, "\n \n"))
+
+county_i <- dat_i$county[1]
+
+
+thresholds <- thresholds_all %>% 
+  filter(qc_test == c("rolling_sd"), variable == "temperature_degree_c", county == county_i) 
+
+thresholds$threshold_value = mean(thresh_quartile$threshold_value)
   
 #apply test
-qc_i <- qc_test_rolling_sd(dat_i, county = "river_data")
+qc_i <- qc_test_rolling_sd(dat_i, county = county_i)
 
 #plot
-qc2_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
-p <- qc_plot_flags(qc2_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+qc_long_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc_long_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
 print(p$temperature_degree_c$rolling_sd)
 
 
@@ -412,7 +421,7 @@ cat("\n\n")
 :::
 
 
-## Quartile Pooled 0.95
+## Quartile pooled 0.95
 ::: panel-tabset
 ```{r}
 #| warning: false
@@ -421,23 +430,27 @@ cat("\n\n")
 #| results: asis
 #| fig-height: 5
 
-threshold_value <- thresh_quartile_pooled_95$threshold_value
-
-#update threshold value in thresholds table. Caution - hard coded in. Check this!
-thresholds[16,7] = threshold_value
 
 for (i in list) {
   dat_i <- dat_all %>%
     filter(station == i)
   
 cat(paste("### ", i, "\n \n"))
+
+county_i <- dat_i$county[1]
+
+thresholds <- thresholds_all %>% 
+  filter(qc_test == c("rolling_sd"), variable == "temperature_degree_c", county == county_i) 
+
+thresholds$threshold_value = thresh_quartile_pooled_95$threshold_value
+  
   
 #apply test
-qc_i <- qc_test_rolling_sd(dat_i, county = "river_data")
+qc_i <- qc_test_rolling_sd(dat_i, county = county_i)
 
 #plot
-qc2_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
-p <- qc_plot_flags(qc2_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+qc_long_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc_long_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
 print(p$temperature_degree_c$rolling_sd)
 
 
@@ -447,7 +460,7 @@ cat("\n\n")
 ```
 :::
 
-## Quartile Pooled 0.97
+## Quartile pooled 0.97
 ::: panel-tabset
 ```{r}
 #| warning: false
@@ -456,23 +469,26 @@ cat("\n\n")
 #| results: asis
 #| fig-height: 5
 
-threshold_value <- thresh_quartile_pooled_97$threshold_value
-
-#update threshold value in thresholds table. Caution - hard coded in. Check this!
-thresholds[16,7] = threshold_value
-
 for (i in list) {
   dat_i <- dat_all %>%
     filter(station == i)
   
 cat(paste("### ", i, "\n \n"))
+
+county_i <- dat_i$county[1]
+
+thresholds <- thresholds_all %>% 
+  filter(qc_test == c("rolling_sd"), variable == "temperature_degree_c", county == county_i) 
+
+thresholds$threshold_value = thresh_quartile_pooled_97$threshold_value
+  
   
 #apply test
-qc_i <- qc_test_rolling_sd(dat_i, county = "river_data")
+qc_i <- qc_test_rolling_sd(dat_i, county = county_i)
 
 #plot
-qc2_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
-p <- qc_plot_flags(qc2_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+qc_long_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc_long_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
 print(p$temperature_degree_c$rolling_sd)
 
 
@@ -482,7 +498,7 @@ cat("\n\n")
 ```
 :::
 
-## Quartile Pooled 0.99
+## Quartile pooled 0.99
 ::: panel-tabset
 ```{r}
 #| warning: false
@@ -491,23 +507,26 @@ cat("\n\n")
 #| results: asis
 #| fig-height: 5
 
-threshold_value <- thresh_quartile_pooled_99$threshold_value
-
-#update threshold value in thresholds table. Caution - hard coded in. Check this!
-thresholds[16,7] = threshold_value
-
 for (i in list) {
   dat_i <- dat_all %>%
     filter(station == i)
   
 cat(paste("### ", i, "\n \n"))
+
+county_i <- dat_i$county[1]
+
+thresholds <- thresholds_all %>% 
+  filter(qc_test == c("rolling_sd"), variable == "temperature_degree_c", county == county_i) 
+
+thresholds$threshold_value = thresh_quartile_pooled_99$threshold_value
+  
   
 #apply test
-qc_i <- qc_test_rolling_sd(dat_i, county = "river_data")
+qc_i <- qc_test_rolling_sd(dat_i, county = county_i)
 
 #plot
-qc2_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
-p <- qc_plot_flags(qc2_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+qc_long_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc_long_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
 print(p$temperature_degree_c$rolling_sd)
 
 
@@ -517,7 +536,7 @@ cat("\n\n")
 ```
 :::
 
-## Quartile Pooled 0.997
+## Quartile pooled 0.997
 ::: panel-tabset
 ```{r}
 #| warning: false
@@ -526,23 +545,26 @@ cat("\n\n")
 #| results: asis
 #| fig-height: 5
 
-threshold_value <- thresh_quartile_pooled_997$threshold_value
-
-#update threshold value in thresholds table. Caution - hard coded in. Check this!
-thresholds[16,7] = threshold_value
-
 for (i in list) {
   dat_i <- dat_all %>%
     filter(station == i)
   
 cat(paste("### ", i, "\n \n"))
+
+county_i <- dat_i$county[1]
+
+thresholds <- thresholds_all %>% 
+  filter(qc_test == c("rolling_sd"), variable == "temperature_degree_c", county == county_i) 
+
+thresholds$threshold_value = thresh_quartile_pooled_997$threshold_value
+  
   
 #apply test
-qc_i <- qc_test_rolling_sd(dat_i, county = "river_data")
+qc_i <- qc_test_rolling_sd(dat_i, county = county_i)
 
 #plot
-qc2_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
-p <- qc_plot_flags(qc2_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+qc_long_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc_long_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
 print(p$temperature_degree_c$rolling_sd)
 
 
@@ -554,9 +576,12 @@ cat("\n\n")
 
 
 
-# Apply test
+# Apply rolling SD threshold
 Due to the right-skew of the sd_roll distribution plots, the quantile method was used to establish thresholds. Because the overall distribution of the data was relatively the same for each station, all station data was pooled before determining a threshold and applying the test.
 
+The final threshold value chosen was q99.7: 2.04
+
+::: panel-tabset
 ```{r}
 #| warning: false
 #| message: false
@@ -564,48 +589,75 @@ Due to the right-skew of the sd_roll distribution plots, the quantile method was
 #| results: asis
 #| fig-height: 5
 
-threshold_value <- thresh_quartile_pooled_997$threshold_value
+#make changes to threshold .csv manually if needed
 
-q = "q_997"
+#read in inland thresholds table
+thresholds <- read.csv(here("thresholds_inland.csv"))
 
-thresholds[16,7] = threshold_value
+summary_stats_list <- list()
 
-sd_roll_applied_all <- qc_test_rolling_sd(dat_all, county = "river_data")
 
+for (i in list) {
+
+  dat_i <- dat_all %>%
+    filter(station == i)
+  
+cat(paste("### ", i, "\n \n"))
+
+county_i <- dat_i$county[1]
+
+qc_i <- qc_test_rolling_sd(dat_i)
 
 #percent observations flagged
-summary_all <- sd_roll_applied_all %>%
+summary_i <- qc_i %>%
   group_by(station) %>%
   summarise(
     n_obs = n(),
     n_suspect = sum(rolling_sd_flag_temperature_degree_c == 3)
   ) %>%
   mutate(percent_suspect = round((100 * n_suspect / n_obs), digits = 3)) %>%
-  mutate(threshold = threshold_value) %>%
-  mutate(q = q) %>%
+  mutate(threshold = 2.04) %>%
+  mutate(q = "q99.7") %>%
   ungroup()
 
+summary_stats_list[[i]] <- summary_i
+
+#plot
+qc_long_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
+p <- qc_plot_flags(qc_long_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+print(p$temperature_degree_c$rolling_sd)
 
 
-summary_all %>%
-  datatable(rownames = FALSE, options = dt_options)
+cat("\n\n")
+}
 
-saveRDS(sd_roll_applied_all, here("data/2024-10-18_inland_data_flagged_all.rds"))
+
 
 ```
+::: 
+
+## Rolling SD flag summary table
+```{r}
+summary_stats_table <- summary_stats_list %>%
+  map_df(rbind) %>%
+  datatable(rownames = FALSE, options = dt_options)
+
+summary_stats_table
+```
+
+
 
 
 
 ```{r}
 #remove flagged values
-flagged_dat_all <- sd_roll_applied_all %>%
-  filter(rolling_sd_flag_temperature_degree_c <2)
-
-saveRDS(flagged_dat_all, here("data/2024-10-18_inland_data_flagged_rm_all.rds"))
+# flagged_dat_all <- sd_roll_applied_all %>%
+#   filter(rolling_sd_flag_temperature_degree_c <2)
+# 
+# saveRDS(flagged_dat_all, here("data/2024-10-18_inland_data_flagged_rm_all.rds"))
 ```
 
 
-## Plot Flagged/Cleaned Station Data
 
 ::: panel-tabset
 ```{r}
@@ -614,23 +666,24 @@ saveRDS(flagged_dat_all, here("data/2024-10-18_inland_data_flagged_rm_all.rds"))
 #| results: asis
 #| fig-height: 5
 
-for (i in list) {
-  dat_i <- flagged_dat_all %>%
-    filter(station == i)
-  
-  cat(paste("### ", i, "\n \n"))
-  
-  print(
-    ggplot(
-      dat_i,
-      aes(x = timestamp_utc, y = temperature_degree_c, col = station)
-    ) +
-      geom_point(color = "black") +
-      facet_grid(vars(station)) +
-      ggtitle(i)
-  )
-  
-  cat("\n\n")
-}
+#plot flagged/cleaned station data
+# for (i in list) {
+#   dat_i <- flagged_dat_all %>%
+#     filter(station == i)
+#   
+#   cat(paste("### ", i, "\n \n"))
+#   
+#   print(
+#     ggplot(
+#       dat_i,
+#       aes(x = timestamp_utc, y = temperature_degree_c, col = station)
+#     ) +
+#       geom_point(color = "black") +
+#       facet_grid(vars(station)) +
+#       ggtitle(i)
+#   )
+#   
+#   cat("\n\n")
+# }
 ```
 :::

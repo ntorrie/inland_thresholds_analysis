@@ -1,0 +1,58 @@
+qc_test,variable,county,month,sensor_type,threshold,threshold_value
+grossrange,temperature_degree_c,NA,NA,aquameasure,sensor_max,35
+grossrange,temperature_degree_c,NA,NA,hobo,sensor_max,70
+grossrange,temperature_degree_c,NA,NA,hobo do,sensor_max,40
+grossrange,temperature_degree_c,NA,NA,vr2ar,sensor_max,40
+grossrange,temperature_degree_c,NA,NA,tidbit,sensor_max,50
+grossrange,temperature_degree_c,NA,NA,aquameasure,sensor_min,-5
+grossrange,temperature_degree_c,NA,NA,hobo,sensor_min,-40
+grossrange,temperature_degree_c,NA,NA,hobo do,sensor_min,-5
+grossrange,temperature_degree_c,NA,NA,vr2ar,sensor_min,-5
+grossrange,temperature_degree_c,NA,NA,tidbit,sensor_min,-20
+grossrange,temperature_degree_c,Annapolis,NA,NA,user_max,100
+grossrange,temperature_degree_c,Antigonish,NA,NA,user_max,100
+grossrange,temperature_degree_c,Cape Breton,NA,NA,user_max,100
+grossrange,temperature_degree_c,Colchester,NA,NA,user_max,100
+grossrange,temperature_degree_c,Digby,NA,NA,user_max,100
+grossrange,temperature_degree_c,Guysborough,NA,NA,user_max,100
+grossrange,temperature_degree_c,Halifax,NA,NA,user_max,100
+grossrange,temperature_degree_c,Inverness,NA,NA,user_max,100
+grossrange,temperature_degree_c,Lunenburg,NA,NA,user_max,100
+grossrange,temperature_degree_c,Pictou,NA,NA,user_max,100
+grossrange,temperature_degree_c,Queens,NA,NA,user_max,100
+grossrange,temperature_degree_c,Richmond,NA,NA,user_max,100
+grossrange,temperature_degree_c,river_data,NA,NA,user_max,100
+grossrange,temperature_degree_c,Shelburne,NA,NA,user_max,100
+grossrange,temperature_degree_c,Victoria,NA,NA,user_max,100
+grossrange,temperature_degree_c,Yarmouth,NA,NA,user_max,100
+grossrange,temperature_degree_c,Annapolis,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Antigonish,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Cape Breton,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Colchester,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Digby,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Guysborough,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Halifax,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Inverness,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Lunenburg,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Pictou,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Queens,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Richmond,NA,NA,user_min,-100
+grossrange,temperature_degree_c,river_data,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Shelburne,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Victoria,NA,NA,user_min,-100
+grossrange,temperature_degree_c,Yarmouth,NA,NA,user_min,-100
+rolling_sd,temperature_degree_c,Annapolis,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Antigonish,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Cape Breton,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Colchester,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Digby,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Guysborough,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Halifax,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Inverness,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Lunenburg,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Pictou,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Queens,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Richmond,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Shelburne,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Victoria,NA,NA,rolling_sd_max,2.04
+rolling_sd,temperature_degree_c,Yarmouth,NA,NA,rolling_sd_max,2.04
