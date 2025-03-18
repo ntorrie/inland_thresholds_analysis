@@ -1,4 +1,5 @@
 qc_test,variable,county,month,sensor_type,threshold,threshold_value
+depth_crosscheck,sensor_depth_at_low_tide_m,NA,NA,NA,depth_diff_max,4
 grossrange,temperature_degree_c,NA,NA,aquameasure,sensor_max,35
 grossrange,temperature_degree_c,NA,NA,hobo,sensor_max,70
 grossrange,temperature_degree_c,NA,NA,hobo do,sensor_max,40

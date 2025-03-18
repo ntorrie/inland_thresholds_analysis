@@ -12,3 +12,10 @@ Final order in which scripts should be run, with the newest datsets, is as follo
 3_explore_freshwater_params_rollingsd.qmd
 4_explore_human_in_the_loop.qmd
 5_apply_all_flags.qmd
+
+TODO:
+Archive old files, refresh newer ones and add documentation/rationale
+
+While replacing files, new names:
+1.2_assemble_inland_data.R (replacing 1.1 and 1)
+2.2_explore_freshwater_params_grossrange.qmd (replacing 2 and 2.1)

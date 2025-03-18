@@ -1,4 +1,5 @@
 qc_test,variable,county,month,sensor_type,threshold,threshold_value
+depth_crosscheck,sensor_depth_at_low_tide_m,NA,NA,NA,depth_diff_max,4
 grossrange,temperature_degree_c,NA,NA,aquameasure,sensor_max,35
 grossrange,temperature_degree_c,NA,NA,hobo,sensor_max,70
 grossrange,temperature_degree_c,NA,NA,hobo do,sensor_max,40
@@ -56,3 +57,15 @@ rolling_sd,temperature_degree_c,Richmond,NA,NA,rolling_sd_max,2.04
 rolling_sd,temperature_degree_c,Shelburne,NA,NA,rolling_sd_max,2.04
 rolling_sd,temperature_degree_c,Victoria,NA,NA,rolling_sd_max,2.04
 rolling_sd,temperature_degree_c,Yarmouth,NA,NA,rolling_sd_max,2.04
+grossrange,dissolved_oxygen_percent_saturation,NA,NA,aquameasure,sensor_min,0
+grossrange,dissolved_oxygen_percent_saturation,NA,NA,aquameasure,sensor_max,150
+grossrange,dissolved_oxygen_percent_saturation,NA,NA,aquameasure,user_min,0
+grossrange,dissolved_oxygen_percent_saturation,NA,NA,aquameasure,user_max,150
+rolling_sd,dissolved_oxygen_percent_saturation,NA,NA,NA,rolling_sd_max,500
+grossrange,sensor_depth_measured_m,NA,NA,vr2ar,sensor_min,0
+grossrange,sensor_depth_measured_m,NA,NA,vr2ar,sensor_max,500
+grossrange,sensor_depth_measured_m,NA,NA,aquameasure,sensor_min,0
+grossrange,sensor_depth_measured_m,NA,NA,aquameasure,sensor_max,100
+grossrange,sensor_depth_measured_m,NA,NA,NA,user_min,0
+grossrange,sensor_depth_measured_m,NA,NA,NA,user_max,500
+rolling_sd,sensor_depth_measured_m,NA,NA,NA,rolling_sd_max,500

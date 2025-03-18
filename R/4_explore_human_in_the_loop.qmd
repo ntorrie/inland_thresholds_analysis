@@ -34,7 +34,7 @@ list <- unique(dat_all_flagged$station)
 
 
 
-human_in_loop_table <-
+human_in_loop_table2 <-
   read_xlsx(
     "R:/tracking_sheets/2024-10-17_inland_water_quality_human_in_loop_tracking.xlsx",
     "inland"
@@ -89,8 +89,8 @@ dat_i <- dat_all %>%
 
 #apply human in loop flags
 qc_i <- qc_test_human_in_loop(dat_i,
-                       human_in_loop_table = human_in_loop_table,
-                       qc_tests = c("rolling_sd"))
+                       human_in_loop_table = human_in_loop_table2,
+                       qc_tests = c("human_in_loop"))
 
 qc2_i <- qc_pivot_longer(qc_i, qc_tests = c("rolling_sd", "human_in_loop"))
 ```

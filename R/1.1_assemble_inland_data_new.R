@@ -16,6 +16,7 @@ library(ggplot2)
 
 
 ## read in data ----------------------------------------------------------------
+# Note, this will only read in files in the data-raw folder. Update as new data is retrieved
 files <- list.files(here("data-raw"), pattern = "rds", full.names = TRUE)
 
 dat_raw <- files %>%
