@@ -1,0 +1,146 @@
+---
+title: "Flagging Inland Data - Human in the Loop"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
+---
+
+
+REVISIT after running qc_tests_inland_water_quality???? 
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(data.table)
+library(qaqcmar)
+library(here)
+library(ggplot2)
+library(sensorstrings)
+library(summaryplots)
+library(plotly)
+library(DT)
+library(leaflet)
+library(zoo)
+library(readxl)
+library(lubridate)
+
+
+
+
+# load CMAR river data
+# uncleaned dataset with ALL inland data:
+dat_all <- readRDS(here("data/2024-12-02_inland_data_raw.rds"))
+
+list <- unique(dat_all$station)
+
+
+# dat_all_flagged <- readRDS(here("data/2024-11-08_inland_data_prelim_rollingsd.rds"))
+# 
+# dat_all <- readRDS(here("data/2024-12-02_inland_data_raw.rds"))
+# 
+# list <- unique(dat_all_flagged$station)
+
+
+
+human_in_loop_table2 <-
+  read_xlsx(
+    "R:/tracking_sheets/2024-10-17_inland_water_quality_human_in_loop_tracking.xlsx",
+    "inland"
+  ) %>%
+  mutate(timestamp_utc_min = as_datetime(timestamp_utc_min)) %>%
+  mutate(timestamp_utc_max = as_datetime(timestamp_utc_max))
+
+
+```
+
+
+```{r}
+
+# for (i in list) {
+#   dat_i <- dat_all_flagged %>%
+#     filter(station == i)
+# 
+# cat(paste("### ", i, "\n \n"))
+# 
+# #apply test
+# qc_i <- qc_apply_human_in_loop(dat_i,
+#                        human_in_loop_table = human_in_loop_table,
+#                        qc_tests = c("rolling_sd"))
+# 
+# 
+# #plot
+# qc2_i <- qc_pivot_longer(qc_i, qc_tests = "rolling_sd")
+# p <- qc_plot_flags(qc2_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+# print(p$temperature_degree_c$rolling_sd)
+# 
+# 
+# cat("\n\n")
+# }
+# 
+
+
+
+```
+
+
+
+```{r}
+# choose a station to investigate
+station_filter <- "Tusket River 3"
+
+dat_i <- dat_all %>%
+    filter(station == station_filter)
+
+# dat_i_long <- qc_pivot_longer(dat_i, qc_tests = NULL)
+# 
+# #plot rolling SD flags
+# j <- qc_plot_flags(dat_i, qc_tests = "rolling_sd", var = "temperature_degree_c")
+# j
+
+#apply human in loop flags
+qc_i <- qc_test_human_in_loop(dat_i,
+                       human_in_loop_table = human_in_loop_table2,
+                       qc_tests = c("rolling_sd", "grossrange"))
+
+qc2_i <- qc_pivot_longer(qc_i, qc_tests = c("rolling_sd", "human_in_loop"))
+```
+
+
+
+```{r}
+#assign max flag
+qc_max_flag_i <- qc_assign_max_flag(qc2_i)
+
+#plot max flag
+q <- ggplot(
+  qc_max_flag_i,
+  aes(x = timestamp_utc, y = temperature_degree_c, 
+      col = qc_flag_temperature_degree_c)) +
+  ggtitle(station_filter) +
+  geom_point(size = 0.7) + 
+  scale_color_manual(breaks = c("1", "2", "3", "4"),
+                     values = c("darkgreen", "darkgray", "orange", "red"))
+
+ggplotly(q)
+
+
+```
+
+
+
+
+```{r}
+#plot
+qc2_i <- qc_pivot_longer(qc_i, qc_tests = c("rolling_sd", "human_in_loop"))
+
+p <- qc_plot_flags(qc_i, qc_tests = c("rolling_sd", "human_in_loop"))
+p
+```
+

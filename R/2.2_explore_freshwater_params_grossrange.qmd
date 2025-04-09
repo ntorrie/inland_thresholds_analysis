@@ -27,7 +27,7 @@ library(leaflet)
 # uncleaned dataset with ALL inland data:
 dat_all1 <- readRDS(here("data/2024-12-02_inland_data_raw.rds"))
 
-# remove sissiboo river, hourglass lake, and piper lake data for now
+# remove sissiboo river, hourglass lake, piper lake and Mersey River 3 data for now
 remove_stations <- c("Hourglass Lake", "Sissiboo", "Piper Lake", "Mersey River 3")
 
 dat_all <- dat_all1 %>%
@@ -92,8 +92,8 @@ unique(dat_clean$station)
  - Tusket 3
  - Possibly Musquodoboit 1 and 2
 
-# Data Visualization
-## Station Locations
+# Data visualization
+## Station locations
 
 Approximate location of stations included in thresholds analysis.
 
@@ -121,7 +121,7 @@ leaflet(st_locations) %>%
 ```
 
 
-## Plot Uncleaned Station Data
+## Plot uncleaned station data
 ::: panel-tabset
 ```{r}
 #| warning: false
@@ -150,7 +150,7 @@ for (i in list2) {
 ```
 :::
 
-## Plot Cleaned Station Data
+## Plot cleaned station data
 
 Suspected outliers have been removed from the following datasets:
 
@@ -190,8 +190,8 @@ for (i in list2) {
 ```
 :::
 
-# Statistical Overview
-## Distribution of Observations
+# Statistical overview
+## Distribution of observations
 ```{r, echo = FALSE, warning = FALSE, fig.height = 15}
 p_i <- dat_clean %>%
   plot_histogram(hist_col = "temperature_degree_c", binwidth = 1) +
@@ -202,8 +202,8 @@ p_i
 
 ```
 
-## Summary Stats
-### By Station
+## Summary stats
+### By station
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 stats <- dat_clean_long %>% 
   group_by(station, variable) %>% 
@@ -246,7 +246,7 @@ stats_all %>%
   datatable(rownames = FALSE, options = dt_options)
 ```
 
-## Mean and Standard Deviation
+## Mean and standard deviation
 ```{r}
 #| warning: false
 #| message: false
@@ -295,7 +295,7 @@ p
 
 # Calculate user grossrange threshold
 
-Since the datasets are all normally distributed, **mean + 3SD** will be used to develop the grossrange thresholds. Stations have similar mean + SD, so data has been pooled to determine one set of user grossrange thresholds to be used to flag all inland river datasets.
+Since the datasets are all normally distributed, **mean + 3SD** will be used to develop the grossrange thresholds. Stations have similar mean + SD, so data has been pooled to determine one set of user grossrange thresholds to be used to flag all inland datasets.
 
 Note, the statistically derived thresholds may be misleading when applied to future datasets, because most of the training datasets do not include data from the full year. Very few of our inland datasets include data from winter months. Thus, for now it is recommended that CMAR user grossrange thresholds are ONLY applied to data collected between June and October (inclusive).
 

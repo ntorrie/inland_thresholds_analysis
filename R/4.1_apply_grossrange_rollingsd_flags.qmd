@@ -1,0 +1,125 @@
+---
+title: "Apply grossrange and rollingsd flags to Inland data"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
+---
+
+Use this document to apply grossrange and rollingsd flags to all inland data and visualize flagged plots. The output will be used as an input for exploring human in the loop flags. 
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse) #TODO: only load tidyverse packages used
+library(data.table)
+library(qaqcmar)
+library(here)
+library(ggplot2)
+library(sensorstrings)
+library(summaryplots)
+library(plotly)
+library(DT)
+library(leaflet)
+library(zoo)
+
+# load CMAR river data
+dat_all <- readRDS(here("data/2024-12-02_inland_data_raw.rds"))
+
+unique(dat_all$station)
+
+# look at flags for one station at a time
+station_i <- "LaHave River 1"
+
+dat_i <- dat_all %>% filter(station == station_i)
+
+
+```
+
+# Station:
+```{r, echo = FALSE}
+print(station_i)
+```
+
+```{r, echo = FALSE,  include = FALSE}
+# Set up to run tests
+# do not apply user grossrange test for certain stations
+atypical_stations <- c("Hourglass Lake", "Sissiboo", "Piper Lake", "Mersey River 3")
+
+if (station_i %in% atypical_stations) {
+  thresholds <-
+    read.csv(
+      here("thresholds_inland_atypical.csv")
+    )
+} else{
+  thresholds <-
+    read.csv(
+      here("thresholds_inland.csv")
+    )
+}
+
+# if sensor depth was not measured, do not run qc_test_depth_crosscheck
+vars <- dat_i %>% 
+  ss_pivot_longer() %>% 
+  distinct(variable)
+
+vars <- sort(vars$variable)
+
+
+if("sensor_depth_measured_m" %in% vars) {
+  qc_tests = c(
+    "grossrange", "rolling_sd", "depth_crosscheck"
+  )
+   join_column_spike <- "sensor_type"
+} else{
+  qc_tests = c("grossrange", "rolling_sd")
+  
+  join_column_spike <- NULL
+}
+
+
+# apply grossrange, depth, and rollingsd tests
+dat_qc <- dat_i %>% 
+  qc_test_all(qc_tests = qc_tests, join_column_spike = join_column_spike)
+
+# assign maximum flag
+dat_qc_flag_max <- dat_qc %>% 
+  qc_assign_max_flag(qc_tests = qc_tests)
+
+```
+
+
+# Visualize Flagged Datasets 
+## Plot rolling sd
+```{r, echo = FALSE}
+p <- qc_plot_flags(dat_qc_flag_max, qc_tests = qc_tests, var = "temperature_degree_c")
+
+print(p$temperature_degree_c$grossrange)
+```
+
+## Plot grossrange
+```{r, echo = FALSE}
+print(p$temperature_degree_c$rolling_sd)
+```
+
+## Plot max flag
+Use this interactive plot to determine whether additional human-in-the-loop flags are needed
+```{r, echo = FALSE}
+q <- ggplot(
+  dat_qc_flag_max,
+  aes(x = timestamp_utc, y = temperature_degree_c, 
+      col = qc_flag_temperature_degree_c)) +
+  ggtitle(station_i) +
+  geom_point(size = 0.7) + 
+  scale_color_manual(breaks = c("1", "2", "3", "4"),
+                     values = c("darkgreen", "darkgray", "orange", "red"))
+
+ggplotly(q)
+
+# update the tracking sheet at: "R:\tracking_sheets\2024-10-17_inland_water_quality_human_in_loop_tracking.xlsx" to add human in the loop flags
+
+# Your thresholds analysis is complete
+```
