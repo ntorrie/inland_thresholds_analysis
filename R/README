@@ -18,7 +18,6 @@ Archive old files, refresh newer ones and add documentation/rationale
 
 While replacing files, new names:
 1.2_assemble_inland_data.R (replacing 1.1 and 1)
-2.2_explore_freshwater_params_grossrange.qmd (replacing 2 and 2.1)
-3.1_explore_freshwater_params_rollingsd.qmd (replacing 3)
-4.1_apply_grossrange_rollingsd_flags (replacing 5)
-5.1_explore_human_in_the_loop.qmd (replacing 4) 
+2.2_explore_inland_params_grossrange.qmd (replacing 2 and 2.1)
+3.1_explore_inland_params_rollingsd.qmd (replacing 3)
+4.1_explore_inland_params_hil.qmd (replacing 5)
