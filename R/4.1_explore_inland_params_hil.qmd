@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-Use this document to apply grossrange and rollingsd flags to all inland data and visualize flagged plots. The output will be used as an input for exploring human in the loop flags. 
+Use this document to apply grossrange and rollingsd flags to inland datasets, and visualize flagged plots. Explore the need for additional human in the loop flags based on the maxium combined flag output.
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -40,11 +40,16 @@ dat_i <- dat_all %>% filter(station == station_i)
 ```
 
 # Station:
-```{r, echo = FALSE}
+```{r}
 print(station_i)
 ```
 
-```{r, echo = FALSE,  include = FALSE}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 5
+
 # Set up to run tests
 # do not apply user grossrange test for certain stations
 atypical_stations <- c("Hourglass Lake", "Sissiboo", "Piper Lake", "Mersey River 3")
@@ -93,21 +98,36 @@ dat_qc_flag_max <- dat_qc %>%
 
 
 # Visualize Flagged Datasets 
-## Plot rolling sd
-```{r, echo = FALSE}
+## Plot grossrange
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 5
+
 p <- qc_plot_flags(dat_qc_flag_max, qc_tests = qc_tests, var = "temperature_degree_c")
 
 print(p$temperature_degree_c$grossrange)
 ```
 
-## Plot grossrange
-```{r, echo = FALSE}
+## Plot rollingsd
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 5
+
 print(p$temperature_degree_c$rolling_sd)
 ```
 
 ## Plot max flag
 Use this interactive plot to determine whether additional human-in-the-loop flags are needed
-```{r, echo = FALSE}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 5
+
 q <- ggplot(
   dat_qc_flag_max,
   aes(x = timestamp_utc, y = temperature_degree_c, 
@@ -119,7 +139,10 @@ q <- ggplot(
 
 ggplotly(q)
 
-# update the tracking sheet at: "R:\tracking_sheets\2024-10-17_inland_water_quality_human_in_loop_tracking.xlsx" to add human in the loop flags
-
-# Your thresholds analysis is complete
 ```
+
+Update the tracking sheet at:
+
+`"R:\tracking_sheets\2024-10-17_inland_water_quality_human_in_loop_tracking.xlsx"` 
+
+to add human in the loop flags. Your thresholds analysis is complete.

@@ -5,7 +5,6 @@
 
 # Raw data does not have preliminary QC applied
 # Currently, thresholds are only applicable to river data
-# Hourglass Lake and Piper Lake data to be added at a later date
 
 library(data.table)
 library(qaqcmar)
@@ -13,7 +12,6 @@ library(purrr)
 library(here)
 library(dplyr)
 library(ggplot2)
-
 
 ## read in data ----------------------------------------------------------------
 # Note, this will only read in files in the data-raw folder. 
