@@ -1,4 +1,4 @@
-# 2025-03-18
+# 2025-04-10
 
 # Assemble inland data for threshold analysis
 # Note, this initial threshold analysis was only completed on a subset of data found in the "data-raw" folder
@@ -46,7 +46,7 @@ thresholds_all <- thresholds
 raw_liscomb1 <- dat_raw %>%
   filter(station == "Liscomb River 1")
 
-#adjust SD test threshold value
+#adjust SD test threshold value until dataset appears to be flagged appropriately
 county_i <- raw_liscomb1$county[1]
 
 thresholds <- thresholds_all %>% 
@@ -196,7 +196,6 @@ clean_tusket3 <- qc_tusket3 %>%
 # produce clean dataset---------------------------------------------------------
 #to remove and re-add qc'ed stations
 #flag entire dataset to get flag columns
-
 qc_all <- dat_raw %>%
   mutate(rolling_sd_flag_temperature_degree_c = NA) %>%
   mutate(rolling_sd_flag_dissolved_oxygen_uncorrected_mg_per_l = NA) %>%
