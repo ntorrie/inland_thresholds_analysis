@@ -12,7 +12,8 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
-library(tidyverse) #todo: only load tidyverse packages you need
+library(dplyr)
+library(tidyr)
 library(data.table)
 library(qaqcmar)
 library(here)
@@ -164,7 +165,6 @@ leaflet(st_locations) %>%
 
 
 ## Plot uncleaned station data
-
 ::: panel-tabset
 ```{r}
 #| warning: false
@@ -203,7 +203,7 @@ Suspected outliers have been removed from the following datasets:
  - Mersey 2
  - Tusket 3
  
-The cleaned datasets will be used to generate the grossrange thresholds.
+The cleaned datasets will be used to generate the rolling standard deviation thresholds.
 
 ::: panel-tabset
 ```{r}
@@ -235,7 +235,11 @@ for (i in list2) {
 
 # Statistical overview
 ## Distribution of sd_roll
-```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 15
 #| fig-cap: Distribution of temperature observations by station (binwidth = 0.25 degree c).
 p_i <- dat_clean_roll %>%
   plot_histogram(hist_col = "sd_roll", binwidth = 0.25) +
@@ -247,7 +251,10 @@ p_i
 ```
 
 ## Distribution all
-```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
 #| fig-height: 6
 #| fig-cap: Distribution of all temperature observations (binwidth = 0.25 degree c).
 
@@ -261,25 +268,33 @@ p_j
 
 # Calculate rolling standard deviation thresholds
 
-Compare various methods for calculating thresholds.
+Compare various methods for calculating thresholds, as applied to the cleaned training datasets.
 
 ::: panel-tabset
 ## Mean_sd threshold table
-```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 15
+
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
-
 
 thresh_sd <- qc_calculate_rolling_sd_thresholds(dat_clean_roll, temperature_degree_c, stat = "mean_sd", n_sd = 3)
 
 thresh_sd %>%
   datatable(rownames = FALSE, options = dt_options)
 
-
 ```
 
 ## Quartile threshold table
-```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 15
+
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 
@@ -291,7 +306,12 @@ thresh_quartile %>%
 ```
 
 ## Quartile pooled threshold table prob = 0.95
-```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 15
+
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_95 <- dat_clean_roll %>%
@@ -304,7 +324,12 @@ thresh_quartile_pooled_95 %>%
 ```
 
 ## Quartile pooled threshold table prob = 0.97
-```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 15
+
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_97 <- dat_clean_roll %>%
@@ -317,7 +342,12 @@ thresh_quartile_pooled_97 %>%
 ```
 
 ## Quartile pooled threshold table prob = 0.99
-```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 15
+
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_99 <- dat_clean_roll %>%
@@ -330,7 +360,12 @@ thresh_quartile_pooled_99 %>%
 ```
 
 ## Quartile pooled threshold table prob = 0.997
-```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 15
+
 #look at histograms of SD roll columns
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 thresh_quartile_pooled_997 <- dat_clean_roll %>%
