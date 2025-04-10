@@ -12,7 +12,8 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
-library(tidyverse) #todo: only load tidyverse packages you need
+library(dplyr)
+library(tidyr)
 library(data.table)
 library(qaqcmar)
 library(here)
@@ -160,7 +161,7 @@ Suspected outliers have been removed from the following datasets:
  - Mersey 2
  - Tusket 3
  
- The cleaned datasets will be used to generate the grossrange thresholds.
+ The cleaned datasets will be used to generate the station statistics and grossrange thresholds.
 
 ::: panel-tabset
 ```{r}
@@ -192,7 +193,12 @@ for (i in list2) {
 
 # Statistical overview
 ## Distribution of observations
-```{r, echo = FALSE, warning = FALSE, fig.height = 15}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 15
+
 p_i <- dat_clean %>%
   plot_histogram(hist_col = "temperature_degree_c", binwidth = 1) +
   scale_x_continuous("temperature_degree_c") +
@@ -204,7 +210,12 @@ p_i
 
 ## Summary stats
 ### By station
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 6
+
 stats <- dat_clean_long %>% 
   group_by(station, variable) %>% 
   summarise(
@@ -227,7 +238,12 @@ stats %>%
 ```
 
 ### Pooled
-```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.height = 7}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 2
+
 stats_all <- dat_clean_long %>% 
   summarise(
     n = n(),
@@ -300,7 +316,12 @@ Since the datasets are all normally distributed, **mean + 3SD** will be used to 
 Note, the statistically derived thresholds may be misleading when applied to future datasets, because most of the training datasets do not include data from the full year. Very few of our inland datasets include data from winter months. Thus, for now it is recommended that CMAR user grossrange thresholds are ONLY applied to data collected between June and October (inclusive).
 
 ## Mean_sd threshold table
-```{r, echo = FALSE, warning = FALSE, fig.height = 5}
+```{r}
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 2
+
 #look at histograms of SD roll colums
 #calculate thresholds by quantiles if skewed, mean/sd if normally distributed
 
