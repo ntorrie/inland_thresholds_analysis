@@ -8,13 +8,23 @@ format:
 editor_options: 
   chunk_output_type: console
 ---
+# Summary
 
-Use this document to apply grossrange and rollingsd flags to inland datasets, and visualize flagged plots. Explore the need for additional human in the loop flags based on the maxium combined flag output.
+CMAR has collected data on several inland bodies of freshwater in Nova Scotia, including lakes and rivers.
+
+CMAR intends to process and publish all inland data under a new "Inland" branch of the [Coastal Monitoring Program](https://cmar.ca/coastal-monitoring-program/#station). Data will be processed in a similar manner to the coastal water quality data, and data flags will be applied using the [qaqcmar](https://github.com/dempsey-CMAR/qaqcmar) package. 
+
+It is suspected that sensors on some rivers were out of the water for some period of time during the deployment due to low water levels. Data flagging efforts will flag data for periods of time sensors were suspected to be exposed. During the periods in which sensors were exposed to air, recorded temperatures fluctuate more quickly than when sensors are submerged. 
+
+The purpose of this document is to help CMAR determine appropriate data flagging tests and thresholds for freshwater (inland) data. We do not currently have enough freshwater data to conduct as thorough an analysis as was done on the coastal water quality data to develop tests and thresholds, so thresholds may be picked in more subjective ways. Note, this initial threshold analysis has been completed on a subset of data.
+
+Use this document to apply grossrange and rollingsd flags to one inland dataset at a time, and visualize flagged plots. Explore the need for additional human in the loop flags based on the maxmium combined flag output.
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
-library(tidyverse) #TODO: only load tidyverse packages used
+library(dplyr)
+library(tidyr)
 library(data.table)
 library(qaqcmar)
 library(here)
@@ -32,16 +42,49 @@ dat_all <- readRDS(here("data/2024-12-02_inland_data_raw.rds"))
 unique(dat_all$station)
 
 # look at flags for one station at a time
-station_i <- "LaHave River 1"
+station_i <- "Liscomb River 1"
 
 dat_i <- dat_all %>% filter(station == station_i)
 
 
 ```
 
-# Station:
+### This document pertains to the following station:
 ```{r}
-print(station_i)
+unique(dat_i$station)
+
+# generate station location dataset for threshold analysis
+st_locations <- dat_i %>%
+  distinct(latitude, .keep_all = TRUE)
+
+```
+
+# Data Visualization
+## Station location
+
+Approximate location of stations included in thresholds analysis.
+
+```{r}
+#| fig-height: 6
+
+# interactive map
+leaflet(st_locations) %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addCircleMarkers(
+    data = st_locations,
+    lng = ~longitude, lat = ~latitude, label = ~station,
+    weight = 1,
+    color = "black",
+    fillOpacity = 0.75,
+    radius = 5
+  ) %>% 
+  addScaleBar(
+    position = "bottomleft", 
+    options = scaleBarOptions(imperial = FALSE)
+  ) %>%
+  addProviderTiles("Esri.WorldTopoMap")
+  #addProviderTiles(providers$CartoDB.Positron)
+
 ```
 
 ```{r}
@@ -97,8 +140,7 @@ dat_qc_flag_max <- dat_qc %>%
 ```
 
 
-# Visualize Flagged Datasets 
-## Plot grossrange
+## Plot grossrange flags
 ```{r}
 #| warning: false
 #| message: false
@@ -110,7 +152,7 @@ p <- qc_plot_flags(dat_qc_flag_max, qc_tests = qc_tests, var = "temperature_degr
 print(p$temperature_degree_c$grossrange)
 ```
 
-## Plot rollingsd
+## Plot rollingsd flags
 ```{r}
 #| warning: false
 #| message: false
@@ -120,7 +162,7 @@ print(p$temperature_degree_c$grossrange)
 print(p$temperature_degree_c$rolling_sd)
 ```
 
-## Plot max flag
+## Plot maximum combined flags
 Use this interactive plot to determine whether additional human-in-the-loop flags are needed
 ```{r}
 #| warning: false
