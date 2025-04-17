@@ -31,7 +31,7 @@ library(purrr)
 dat_all1 <- readRDS(here("data/2024-12-02_inland_data_raw.rds"))
 
 # remove sissiboo river, hourglass lake, piper lake and Mersey River 3 data for now
-remove_stations <- c("Hourglass Lake", "Sissiboo", "Piper Lake", "Mersey River 3")
+remove_stations <- c("Hourglass Lake", "Sissiboo River", "Piper Lake", "Mersey River 3")
 
 dat_all <- dat_all1 %>%
   filter(!(station %in% remove_stations))

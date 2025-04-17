@@ -42,9 +42,17 @@ dat_all <- readRDS(here("data/2024-12-02_inland_data_raw.rds"))
 unique(dat_all$station)
 
 # look at flags for one station at a time
-station_i <- "Liscomb River 1"
+station_i <- "Tusket River 3"
 
 dat_i <- dat_all %>% filter(station == station_i)
+
+# OPTIONAL
+# import precipitation data
+#for meteghan
+# weather_data <- read.csv("C:/Users/Nicole Torrie/Documents/R/cmp_code/inland_thresholds_analysis/data/en_climate_daily_NS_8200604_2024_P1D_digby.csv")
+
+#for north
+# weather_data <- read.csv("C:/Users/Nicole Torrie/Documents/R/cmp_code/inland_thresholds_analysis/data/en_climate_daily_NS_8204154_2024_P1D_margaree.csv")
 
 
 ```
@@ -94,8 +102,8 @@ leaflet(st_locations) %>%
 #| fig-height: 5
 
 # Set up to run tests
-# do not apply user grossrange test for certain stations
-atypical_stations <- c("Hourglass Lake", "Sissiboo", "Piper Lake", "Mersey River 3")
+# thresholds have not been derived statistically for atypical stations
+atypical_stations <- c("Hourglass Lake", "Sissiboo River", "Piper Lake", "Mersey River 3")
 
 if (station_i %in% atypical_stations) {
   thresholds <-
@@ -188,3 +196,51 @@ Update the tracking sheet at:
 `"R:\tracking_sheets\2024-10-17_inland_water_quality_human_in_loop_tracking.xlsx"` 
 
 to add human in the loop flags. Your thresholds analysis is complete.
+
+
+## Bonus precipitation data:
+**Note, you MUST update the path to the relevant weather station data if interested in using this section**
+
+Plot rainfall data to help determine periods of potential sensor drying, or explain other data signals.
+
+Download weather data from nearby government weather stations: https://climate.weather.gc.ca/historical_data/search_historic_data_e.html
+
+Use the **daily** data interval and download the .csv with daily data for the year of your deployment.
+
+Note potential axis differences in the below data plots.
+
+Add brackets back in around the r ("{r}") in the code chunk header below to use the code
+
+```r
+#| warning: false
+#| message: false
+#| results: asis
+#| fig-height: 5
+
+
+#convert datetime to posixct if time is included in the column, otherwise, as.Date works
+weather_data$Date.Time <- as.Date(weather_data$Date.Time, '%Y-%m-%d') 
+
+date_start <- min(dat_qc_flag_max$timestamp_utc)
+date_end <- max(dat_qc_flag_max$timestamp_utc)
+
+#set to a few days before the deployment start if needed
+#date_start <- '2024-06-05' 
+
+weather_data2 <-
+  weather_data %>% filter(Date.Time > date_start &
+                            Date.Time < date_end)
+
+title <- paste(weather_data2$Station.Name[1], "WEATHER STATION")
+
+r <- ggplot(weather_data2, aes(Date.Time, Total.Precip..mm.)) +
+  geom_line() +
+  ggtitle(title)
+ggplotly (r)
+
+s <- ggplot(dat_qc_flag_max, aes(timestamp_utc, temperature_degree_c)) +
+  geom_line() +
+  ggtitle(station_i)
+ggplotly (s)
+
+```

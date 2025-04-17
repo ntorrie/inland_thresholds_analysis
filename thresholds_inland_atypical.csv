@@ -58,7 +58,7 @@ rolling_sd,temperature_degree_c,Shelburne,NA,NA,rolling_sd_max,2.04
 rolling_sd,temperature_degree_c,Victoria,NA,NA,rolling_sd_max,2.04
 rolling_sd,temperature_degree_c,Yarmouth,NA,NA,rolling_sd_max,2.04
 grossrange,dissolved_oxygen_percent_saturation,NA,NA,aquameasure,sensor_min,0
-grossrange,dissolved_oxygen_percent_saturation,NA,NA,aquameasure,sensor_max,150
+grossrange,dissolved_oxygen_percent_saturation,NA,NA,aquameasure,sensor_max,500
 grossrange,dissolved_oxygen_percent_saturation,NA,NA,aquameasure,user_min,0
 grossrange,dissolved_oxygen_percent_saturation,NA,NA,aquameasure,user_max,150
 rolling_sd,dissolved_oxygen_percent_saturation,NA,NA,NA,rolling_sd_max,500
